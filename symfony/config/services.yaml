@@ -22,3 +22,14 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    CommerceGuys\Addressing\Country\CountryRepositoryInterface:
+        class: CommerceGuys\Addressing\Country\CountryRepository
+
+    CommerceGuys\Addressing\Subdivision\SubdivisionRepositoryInterface:
+        class: CommerceGuys\Addressing\Subdivision\SubdivisionRepository
+
+    CommerceGuys\Addressing\AddressFormat\AddressFormatRepositoryInterface:
+        class: CommerceGuys\Addressing\AddressFormat\AddressFormatRepository
+
+    App\Form\AddressInfoType: ~
