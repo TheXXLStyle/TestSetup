@@ -12,7 +12,7 @@ export default class extends Controller {
     async update() {
         const form = this.element;
         const formData = new FormData(form);
-        const url = this.updateUrlValue; // We only use the explicitly set URL
+        const url = this.updateUrlValue;
 
         if (!url) {
             console.error('No updateUrlValue set for address-form controller.');
@@ -35,8 +35,8 @@ export default class extends Controller {
             });
 
             if (response.ok) {
-                const html = await response.text(); // Get HTML as text
-                this.dependentFieldsWrapperTarget.innerHTML = html; // Replace content
+                const html = await response.text();
+                this.dependentFieldsWrapperTarget.innerHTML = html;
             } else {
                 console.error(`Error updating the form: ${response.status} ${response.statusText}`);
             }

@@ -3,6 +3,11 @@
 {% block title %}StreamPlus Onboarding - Step 2: Address{% endblock %}
 
 {% block body %}
+    {% if form.vars.errors|length > 0 %}
+        <div class="alert alert-danger" role="alert">
+            {{ form_errors(form) }}
+        </div>
+    {% endif %}
     <div class="container mt-5">
         <div class="progress mb-4" role="progressbar" aria-label="Onboarding Progress" aria-valuenow="50"
              aria-valuemin="0" aria-valuemax="100">

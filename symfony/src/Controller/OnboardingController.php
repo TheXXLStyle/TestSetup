@@ -66,10 +66,7 @@ class OnboardingController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $session->set(self::SESSION_KEY, $onboardingData);
 
-            $nextStepRoute = $onboardingData->needsPaymentStep()
-                ? 'app_onboarding_payment'
-                : 'app_onboarding_confirmation';
-            return $this->redirect($urlGenerator->generate($nextStepRoute));
+            return $this->redirect($urlGenerator->generate('app_onboarding_payment'));
         }
 
         return $this->render('onboarding/address_info.html.twig', [

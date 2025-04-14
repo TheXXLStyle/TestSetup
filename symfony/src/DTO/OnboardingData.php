@@ -4,6 +4,7 @@ namespace App\DTO;
 
 use Symfony\Component\Intl\Exception\MissingResourceException;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\GroupSequenceProviderInterface;
 use Symfony\Component\Intl\Countries;
 
@@ -11,6 +12,7 @@ use Symfony\Component\Intl\Countries;
  * Data Transfer Object for the multi-step onboarding process.
  * Implements GroupSequenceProviderInterface to control validation order based on selected subscription.
  */
+#[Assert\Callback(callback: 'validateAddressFields', groups: ['step2'])]
 class OnboardingData implements GroupSequenceProviderInterface
 {
     #[Assert\NotBlank(message: 'Name cannot be blank.', groups: ['step1'])]
@@ -27,9 +29,8 @@ class OnboardingData implements GroupSequenceProviderInterface
 
     #[Assert\NotBlank(message: 'Subscription type must be selected.', groups: ['step1'])]
     #[Assert\Choice(choices: ['free', 'premium'], message: 'Invalid subscription type selected.', groups: ['step1'])]
-    public ?string $subscriptionType = 'free'; // Default value
+    public ?string $subscriptionType = 'free';
 
-    #[Assert\NotBlank(message: 'Address (Line 1) cannot be blank.', groups: ['step2'])]
     #[Assert\Length(min: 5, max: 255, minMessage: 'Address (Line 1) must be at least {{ limit }} characters long.', maxMessage: 'Address (Line 1) cannot be longer than {{ limit }} characters.', groups: ['step2'])]
     public ?string $addressLine1 = null;
 
@@ -40,18 +41,15 @@ class OnboardingData implements GroupSequenceProviderInterface
     #[Assert\Length(min: 2, max: 100, minMessage: 'City must be at least {{ limit }} characters long.', maxMessage: 'City cannot be longer than {{ limit }} characters.', groups: ['step2'])]
     public ?string $city = null;
 
-    #[Assert\NotBlank(message: 'Postal code cannot be blank.', groups: ['step2'])]
     #[Assert\Length(min: 3, max: 20, minMessage: 'Postal code must be at least {{ limit }} characters long.', maxMessage: 'Postal code cannot be longer than {{ limit }} characters.', groups: ['step2'])]
     #[Assert\Regex(pattern: '/^[a-zA-Z0-9\s\-]+$/', message: 'Invalid postal code format.', groups: ['step2'])]
     public ?string $postalCode = null;
 
-    #[Assert\NotBlank(message: 'State/Province/Region cannot be blank.', groups: ['step2'])]
-    #[Assert\Length(min: 2, max: 100, minMessage: 'State/Province/Region must be at least {{ limit }} characters long.', maxMessage: 'State/Province/Region cannot be longer than {{ limit }} characters.', groups: ['step2'])]
     public ?string $state = null;
 
     #[Assert\NotBlank(message: 'Country cannot be blank.', groups: ['step2'])]
     #[Assert\Country(message: 'Invalid country code.', groups: ['step2'])]
-    public ?string $country = null; // Store country code (e.g., DE, US)
+    public ?string $country = null;
 
     #[Assert\NotBlank(message: 'Credit card number cannot be blank.', groups: ['step3'])]
     #[Assert\Luhn(message: 'Invalid credit card number.', groups: ['step3'])]
@@ -110,6 +108,58 @@ class OnboardingData implements GroupSequenceProviderInterface
             return Countries::getName($this->country);
         } catch (MissingResourceException $e) {
             return $this->country;
+        }
+    }
+
+    private function countryRequiresState(): bool
+    {
+        if ($this->country === null) {
+            return false;
+        }
+        $countriesWithStates = ['US', 'CA'];
+
+        return in_array($this->country, $countriesWithStates, true);
+    }
+
+    public function validateAddressFields(ExecutionContextInterface $context, mixed $payload): void
+    {
+        if (empty($this->addressLine1)) {
+            $context->buildViolation('Address (Line 1) cannot be blank.')
+                ->atPath('addressLine1')
+                ->addViolation();
+        }
+
+        if (empty($this->city)) {
+            $context->buildViolation('City cannot be blank.')
+                ->atPath('city')
+                ->addViolation();
+        }
+
+        if (empty($this->postalCode)) {
+            $context->buildViolation('Postal code cannot be blank.')
+                ->atPath('postalCode')
+                ->addViolation();
+        }
+
+        if ($this->countryRequiresState()) {
+            if (empty($this->state)) {
+                $context->buildViolation('State/Province cannot be blank.')
+                    ->atPath('state')
+                    ->addViolation();
+            } else {
+                if (strlen($this->state) < 2) {
+                    $context->buildViolation('State/Province must be at least {{ limit }} characters long.')
+                        ->setParameter('{{ limit }}', '2')
+                        ->atPath('state')
+                        ->addViolation();
+                }
+                if (strlen($this->state) > 100) {
+                    $context->buildViolation('State/Province cannot be longer than {{ limit }} characters.')
+                        ->setParameter('{{ limit }}', '100')
+                        ->atPath('state')
+                        ->addViolation();
+                }
+            }
         }
     }
 }
