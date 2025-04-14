@@ -6,6 +6,7 @@ use App\DTO\OnboardingData;
 use App\Form\AddressInfoType;
 use App\Form\PaymentInfoType;
 use App\Form\UserInfoType;
+use App\Service\SubscriptionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -125,11 +126,13 @@ class OnboardingController extends AbstractController
         ]);
     }
 
-    #[Route('/confirmation', name: 'app_onboarding_confirmation', methods: ['GET'])] // Only GET allowed
+    #[Route('/confirmation', name: 'app_onboarding_confirmation', methods: ['GET', 'POST'])]
     public function step4Confirmation(
+        Request               $request,
         SessionInterface      $session,
         ValidatorInterface    $validator,
-        UrlGeneratorInterface $urlGenerator
+        UrlGeneratorInterface $urlGenerator,
+        SubscriptionService   $subscriptionService
     ): Response
     {
         $onboardingData = $session->get(self::SESSION_KEY);
@@ -139,50 +142,29 @@ class OnboardingController extends AbstractController
             return $this->redirect($urlGenerator->generate('app_onboarding_start'));
         }
 
+        if ($request->isMethod('POST')) {
+            $violations = $validator->validate($onboardingData);
 
-        $groups = new GroupSequence(['step1']);
-        if ($onboardingData->needsPaymentStep()) {
-            $groups->groups[] = 'step2';
-            $groups->groups[] = 'step3';
-        }
-        $groups->groups[] = 'Default';
-
-
-        $violations = $validator->validate($onboardingData, null, $groups);
-
-        if (count($violations) > 0) {
-            foreach ($violations as $violation) {
-                $this->addFlash('danger', $violation->getPropertyPath() . ': ' . $violation->getMessage());
+            if (count($violations) > 0) {
+                foreach ($violations as $violation) {
+                    $this->addFlash('danger', $violation->getPropertyPath() . ': ' . $violation->getMessage());
+                }
+                return $this->redirectToRoute('app_onboarding_confirmation');
             }
-            $this->addFlash('danger', 'Errors found in the submitted data. Please check your input.');
 
-            return $this->redirect($urlGenerator->generate('app_onboarding_start'));
+            try {
+                $user = $subscriptionService->saveUserFromOnboarding($onboardingData);
+                $this->addFlash('success', 'Your data has been saved successfully!');
+                $session->remove(self::SESSION_KEY);
+
+                return $this->redirectToRoute('app_homepage');
+            } catch (\Exception $e) {
+                $this->addFlash('danger', 'An error occurred while saving your data. Please try again.');
+            }
         }
-
-        // 3. Process data (e.g., create user, create subscription - SIMULATED HERE)
-        try {
-            // Example service calls:
-            // $user = $this->userService->createFromOnboarding($onboardingData);
-            // if ($onboardingData->needsPaymentStep()) {
-            //     $this->subscriptionService->createSubscription($user, $onboardingData);
-            // }
-
-            // Simulation: Everything successful
-            $userId = uniqid(); // Simulated User ID
-            $subscriptionStatus = $onboardingData->needsPaymentStep() ? 'active (Premium)' : 'active (Free)';
-
-        } catch (\Exception $e) {
-            $this->addFlash('danger', 'An unexpected error occurred. Please try again later or contact support.');
-
-            return $this->redirect($urlGenerator->generate('app_onboarding_payment'));
-        }
-
-        $session->remove(self::SESSION_KEY);
 
         return $this->render('onboarding/confirmation.html.twig', [
-            'onboardingData' => $onboardingData, // For displaying the summary
-            'simulatedUserId' => $userId,
-            'simulatedSubscriptionStatus' => $subscriptionStatus
+            'onboardingData' => $onboardingData,
         ]);
     }
 }
