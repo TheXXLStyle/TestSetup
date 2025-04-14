@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}StreamPlus Onboarding - Confirmation{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="progress mb-4" role="progressbar" aria-label="Onboarding Progress" aria-valuenow="100"
+             aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar bg-success" style="width: 100%">Completed!</div>
+        </div>
+
+        <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">Welcome to StreamPlus!</h4>
+            <p>Your onboarding was successful. Your account has been created.</p>
+            <hr>
+            <p class="mb-0">You can now use all features of StreamPlus.</p>
+        </div>
+
+        <h2 class="mt-5 mb-3">Summary of your data:</h2>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                User Data
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Name:</strong> {{ onboardingData.name }}</li>
+                <li class="list-group-item"><strong>E-Mail:</strong> {{ onboardingData.email }}</li>
+                <li class="list-group-item">
+                    <strong>Phone:</strong> {{ onboardingData.phoneNumber|default('Not provided') }}</li>
+                <li class="list-group-item">
+                    <strong>Subscription
+                        Type:</strong> {{ onboardingData.subscriptionType|replace({'premium': 'Premium', 'free': 'Free'}) }}
+                </li>
+            </ul>
+        </div>
+
+        {% if onboardingData.needsPaymentStep() %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    Address
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">{{ onboardingData.addressLine1 }}</li>
+                    {% if onboardingData.addressLine2 %}
+                        <li class="list-group-item">{{ onboardingData.addressLine2 }}</li>
+                    {% endif %}
+                    <li class="list-group-item">{{ onboardingData.postalCode }} {{ onboardingData.city }}</li>
+                    <li class="list-group-item">{{ onboardingData.state }}</li>
+                    <li class="list-group-item">{{ onboardingData.countryName() }}</li>
+                </ul>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    Payment Information
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Card Number:</strong> **** ****
+                        **** {{ onboardingData.creditCardNumber|slice(-4) }}</li>
+                    <li class="list-group-item"><strong>Expiration Date:</strong> {{ onboardingData.expirationDate }}
+                    </li>
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="card mb-4 bg-light">
+            <div class="card-body">
+                <h5 class="card-title">Your Account</h5>
+                <p class="card-text">
+                    Your simulated User ID: <strong>{{ simulatedUserId }}</strong><br>
+                    Your Subscription Status: <strong>{{ simulatedSubscriptionStatus }}</strong>
+                </p>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

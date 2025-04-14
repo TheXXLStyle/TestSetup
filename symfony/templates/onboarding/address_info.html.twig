@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}StreamPlus Onboarding - Step 2: Address{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="progress mb-4" role="progressbar" aria-label="Onboarding Progress" aria-valuenow="50"
+             aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar" style="width: 50%">Step 2/4</div>
+        </div>
+
+        <h1 class="mb-4">Step 2: Your Address</h1>
+
+        {{ form_start(form) }}
+
+        <div class="mb-3">
+            {{ form_row(form.addressLine1, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="mb-3">
+            {{ form_row(form.addressLine2, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="row mb-3"> {# City and Postal Code in one row #}
+            <div class="col-md-8">
+                {{ form_row(form.city, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="col-md-4">
+                {{ form_row(form.postalCode, {'attr': {'class': 'form-control'}}) }}
+            </div>
+        </div>
+        <div class="mb-3">
+            {{ form_row(form.state, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="mb-3">
+            {{ form_row(form.country, {'attr': {'class': 'form-select'}}) }}
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-between">
+            <a href="{{ back_url }}" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

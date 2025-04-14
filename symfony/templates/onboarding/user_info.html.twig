@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}StreamPlus Onboarding - Step 1: User Data{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="progress mb-4" role="progressbar" aria-label="Onboarding Progress" aria-valuenow="25"
+             aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar" style="width: 25%">Step 1/4</div>
+        </div>
+
+        <h1 class="mb-4">Step 1: Your User Data</h1>
+
+        {{ form_start(form) }}
+
+        <div class="mb-3">
+            {{ form_row(form.name, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="mb-3">
+            {{ form_row(form.email, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="mb-3">
+            {{ form_row(form.phoneNumber, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.subscriptionType) }}
+            {% for child in form.subscriptionType %}
+                <div class="form-check">
+                    {{ form_widget(child, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(child, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                </div>
+            {% endfor %}
+            {{ form_errors(form.subscriptionType) }}
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
